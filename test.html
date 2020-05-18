@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <style>
+    .counties {
+        fill:#33474e;
+    }
+    .counties :hover {
+        fill: #7f9ca7;
+        transition: 0.5s;
+    }
+    .county-borders {
+        fill: none;
+        stroke: #fff;
+        stroke-width: 0.5px;
+    }
+</style>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="http://d3js.org/topojson.v1.min.js"></script>
+<!-- <script src="https://unpkg.com/topojson@3"></script> -->
+
+    <title>Hello, world!</title>
+  </head>
+  <body>
+    <div id="app">
+    <svg width='1000' height='1000' style='border:1px solid #00000060;'>
+        <g class="counties"></g>
+        <path class="county-borders"></path>
+    </svg>
+</div>
+
+
+<script type="text/javascript">
+  let vm = new Vue({
+            el: "#app",
+            data: {
+                taiwanCountry: []
+            },
+            mounted() {
+                      fetch('https://raw.githubusercontent.com/lit40190/taiwanmap/master/TOWN_MOI_1090324.json').then(res => res.json()).then(result => {
+                        this.taiwanCountry = result
+                        this.draw(this.taiwanCountry)
+                    })
+            },
+            methods: {
+                draw(mapData) {
+                    let svg = d3.select('svg')
+                    let projection = d3.geoMercator()
+                        .center([121, 25])
+                        .scale(11000);
+                    let path = d3.geoPath(projection);
+
+                    d3.select('g.counties')
+                        .selectAll("path")
+                        .data(topojson.feature(mapData, mapData.objects["TOWN_MOI_1090324"]).features)
+                        .enter().append("path")
+                        .attr("d", path)
+                        .attr('id', function(d) { return d.properties['TOWNNAME']; })
+                        .append("svg:title").text(function(d) { return d.properties['TOWNNAME']; });
+
+                    d3.select('path.county-borders')
+                    .attr("d", path(topojson.mesh(mapData, mapData.objects["TOWN_MOI_1090324"], function (a, b) { return a !== b; })));
+                    
+
+                }
+            }
+        });
+</script>
+
+
+
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+  </body>
+</html>
